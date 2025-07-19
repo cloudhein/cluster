@@ -16,7 +16,7 @@ spec:
         app: mailer
     spec:
       containers:
-      - image: xidepid640/mailer:v1.0.0
+      - image: mrnanda/mailer:0.0.1
         name: app-container
         ports:
         - containerPort: 8080

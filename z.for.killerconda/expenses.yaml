@@ -13,10 +13,10 @@ spec:
   template:
     metadata:
       labels:
-        app: expenses
+        app: expenses # must match the label in the Pod template and immutable after creation
     spec:
       containers:
-      - image: xidepid640/expenses:v1.0.0
+      - image: mrnanda/expenses:0.0.1 
         name: app-container
         ports:
         - containerPort: 8080

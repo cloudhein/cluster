@@ -35,7 +35,7 @@ metadata:
     app: redis
 spec:
   selector:
-    app: redis
+    app: redis  # must match the label in the Pod and immutable after creation
   ports:
   - targetPort: 6379
     protocol: TCP

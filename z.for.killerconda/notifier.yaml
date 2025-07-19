@@ -8,7 +8,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notifier
+      app: notifier # must match the label in the Pod template and immutable after creation
   strategy: {}
   template:
     metadata:
@@ -16,7 +16,7 @@ spec:
         app: notifier
     spec:
       containers:
-      - image: xidepid640/notifier:v1.0.0
+      - image: mrnanda/notifier:0.0.1
         name: app-container
         ports:
         - containerPort: 8080
@@ -35,7 +35,7 @@ spec:
             port: 8080
         env:
         - name: GRPC_ADDR
-          value: ""
+          value: "expenses-app:50051" # add the service name and port for expenses microservice
         - name: PORT
           value: "8080"
         - name: MONGO_USERNAME
@@ -48,7 +48,7 @@ spec:
             secretKeyRef:
               name: mongo-secret
               key: password
-        - name: MONGO_HOST
+        - name: MONGO_HOST #  add the service name of mongo db
           valueFrom:
             secretKeyRef:
               name: mongo-secret

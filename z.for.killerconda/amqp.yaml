@@ -62,5 +62,5 @@ spec:
     protocol: TCP
     targetPort: 15692
   selector:
-    app: rabbitmq
+    app: rabbitmq  # must match the label in the Pod and immutable after creation
   type: ClusterIP
