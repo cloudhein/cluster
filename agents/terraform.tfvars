@@ -4,7 +4,7 @@ argocd_apps = [
 
     repository-url  = "https://github.com/cloudhein/cluster.git"
     source-path     = "flextrack"
-    target-revision = "head"
+    target-revision = "HEAD"
 
     server-url = "https://kubernetes.default.svc"
   }
