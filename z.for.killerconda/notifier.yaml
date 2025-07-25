@@ -35,7 +35,7 @@ spec:
             port: 8080
         env:
         - name: GRPC_ADDR
-          value: "expenses-app:50051" # add the service name and port for expenses microservice
+          value: "expenses-app" # add the service name and port for expenses microservice
         - name: PORT
           value: "8080"
         - name: MONGO_USERNAME
