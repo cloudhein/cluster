@@ -1,6 +1,6 @@
 argocd_apps = [
   {
-    app-name = "flextrack-app"
+    app-name = "bot-app"
 
     repository-url  = "https://github.com/cloudhein/cluster.git"
     source-path     = "robot-shop"
