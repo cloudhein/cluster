@@ -15,6 +15,10 @@ resource "helm_release" "nginx_ingress" {
     {
       name  = "controller.allowSnippetAnnotations"
       value = "true"
+    },
+    {
+      name  = "controller.config.annotations-risk-level"
+      value = "Critical"
     }
   ]
 
