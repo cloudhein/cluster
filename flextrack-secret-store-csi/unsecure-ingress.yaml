@@ -66,15 +66,15 @@ spec:
   rules:
   - http:
       paths:
-      - path: /expenses/(.*)
-        pathType: ImplementationSpecific
+      - path: /expenses
+        pathType: Prefix
         backend:
           service:
             name: expenses-app
             port:
               number: 8080
-      - path: /notifier/(.*)
-        pathType: ImplementationSpecific
+      - path: /notifier
+        pathType: Prefix
         backend:
           service:
             name: notifier-app
