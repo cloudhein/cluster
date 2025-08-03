@@ -4,6 +4,8 @@ metadata:
   name: flextrack-ingress
   namespace: default
   annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/service-upstream: "true"
     nginx.ingress.kubernetes.io/server-snippet: |
@@ -60,7 +62,7 @@ metadata:
         end
       }
 spec:
-  ingressClassName: "nginx"
+  ingressClassName: "alb"
   rules:
   - http:
       paths:
