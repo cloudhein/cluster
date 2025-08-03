@@ -15,6 +15,7 @@ spec:
       labels:
         app: notifier
     spec:
+      serviceAccountName: secret-store-sa # Must match the service account created for secret store CSI 
       volumes:
         - name: mongo-secret-store
           csi:

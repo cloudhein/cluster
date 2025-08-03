@@ -5,6 +5,7 @@ metadata:
   labels:
     app: mongo
 spec:
+  serviceAccountName: secret-store-sa # Must match the service account created for secret store CSI
   containers:
   - name: mongo-container
     image: mongo:latest
