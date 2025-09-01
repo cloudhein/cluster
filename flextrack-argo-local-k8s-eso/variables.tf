@@ -30,7 +30,7 @@ variable "eso_namespace" {
 
 variable "reloader_namespace" {
   type        = string
-  description = "Namespace for Reloader"
+  description = "Namespace for Reloader and make sure to match with app namespace"
   default     = "default"
 }
 
