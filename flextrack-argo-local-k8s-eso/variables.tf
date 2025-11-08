@@ -39,3 +39,9 @@ variable "reloader_create_ns" {
   description = "Create namespace for Reloader if it doesn't exist"
   default     = false
 }
+
+variable "helm_timeout" {
+  type        = number
+  description = "Timeout for Helm releases in seconds"
+  default     = 900
+}
