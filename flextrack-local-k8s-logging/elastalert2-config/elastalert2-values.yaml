@@ -1,0 +1,39 @@
+replicaCount: 1
+runIntervalMins: 1
+
+elasticsearch:
+  host: elasticsearch-master
+  port: 9200
+  useSsl: "True"
+  verifyCerts: "False"
+  credentialsSecret: "elasticsearch-credentials"
+  credentialsSecretUsernameKey: "username"
+  credentialsSecretPasswordKey: "password"
+
+# Reference the Slack webhook secret
+extraEnv:
+  - name: SLACK_WEBHOOK_URL
+    valueFrom:
+      secretKeyRef:
+        name: slack-webhook-secret # Name of the Kubernetes secret
+        key: webhook-url # Key in the secret containing the webhook URL
+
+rules:
+  high_error_rate: |-
+    ---
+    name: High Error Rate - Default Namespace
+    type: frequency
+    index: logstash-*
+    num_events: 10
+    timeframe:
+      minutes: 5
+    filter:
+    - query:
+        query_string:
+          query: 'kubernetes.namespace_name.keyword:"default" AND (level.keyword:"ERROR" OR level.keyword:"error")'
+    alert:
+    - "slack"
+    slack_webhook_url: 
+      "$SLACK_WEBHOOK_URL"
+    slack_channel_override: "#loggingalerts"
+    slack_username_override: "ElastAlert"
