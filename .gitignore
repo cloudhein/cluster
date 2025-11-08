@@ -39,3 +39,7 @@ terraform.rc
 *.tfplan
 *.tflock
 *.tf.backup
+
+terraform.tfvars
+flextrack-local-k8s-monitoring/terraform.tfvars
+**/*.tfvars

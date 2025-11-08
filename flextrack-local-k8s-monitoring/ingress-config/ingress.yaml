@@ -1,0 +1,57 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: monitoring-ingress
+  namespace: monitoring # match with the namespace in main.tf
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx-monitoring # match with the ingress class name in ingress-controller.tf
+  rules:
+  # Grafana Ingress
+  - host: grafana.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: monitoring-grafana
+            port:
+              number: 80
+  
+  # Prometheus Ingress
+  - host: prometheus.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: monitoring-kube-prometheus-prometheus
+            port:
+              number: 9090
+  
+  # AlertManager Ingress
+  - host: alertmanager.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: monitoring-kube-prometheus-alertmanager
+            port:
+              number: 9093
+
+  # Node Exporter Ingress
+  - host: nodeexporter.local
+    http:
+      paths:  
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: monitoring-prometheus-node-exporter
+            port:
+              number: 9100

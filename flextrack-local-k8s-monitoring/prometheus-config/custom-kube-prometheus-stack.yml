@@ -1,0 +1,101 @@
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+alertmanager:
+  alertmanagerSpec:
+    # Selects Alertmanager configuration based on these labels. Ensure that the Alertmanager configuration has matching labels.
+    # ✅ Solves error: Misconfigured Alertmanager selectors can lead to missing alert configurations.
+    # ✅ Solves error: Alertmanager wasn't able to findout the applied CRD (kind: Alertmanagerconfig)
+    alertmanagerConfigSelector:
+      matchLabels:
+        release: monitoring # match with the release name in main.tf
+
+    # Sets the number of Alertmanager replicas to 3 for high availability.
+    # ✅ Solves error: Single replica can cause alerting issues during pod failures.
+    # ✅ Solves error: Alertmanager Cluster Status is Disabled (GitHub issue)
+    replicas: 2
+
+    # Sets the strategy for matching Alertmanager configurations. 'None' means no specific matching strategy.
+    # ✅ Solves error: Incorrect matcher strategy can lead to unhandled alert configurations.
+    # ✅ Solves error: Get rid of namespace matchers when creating AlertManagerConfig (GitHub issue)
+    alertmanagerConfigMatcherStrategy:
+      type: None
+
+    # Enable persistent storage for Alertmanager to retain alert data across restarts.
+    # ✅ Solves error: Alertmanager data loss during pod restarts.
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard # Use your desired StorageClass
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 2Gi  # Alertmanager needs less space
+
+# Enable grafana to be persistent across restarts.
+# ✅ Solves error: Grafana data loss during pod restarts.
+grafana:
+  persistence:
+    enabled: true
+    type: sts  # StatefulSet for persistent storage
+    size: 10Gi
+    storageClassName: "standard" # Use your desired StorageClass
+    accessModes:
+      - ReadWriteOnce
+    finalizers:
+      - kubernetes.io/pvc-protection
+
+   # Keep single replica for simplicity
+  replicas: 1
+  
+  # Schedule only on worker nodes (avoid control-plane)
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/arch
+            operator: In
+            values:
+            - amd64
+          - key: node-role.kubernetes.io/control-plane
+            operator: DoesNotExist
+  
+  # Fix security context issues
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 472
+    runAsGroup: 472
+    fsGroup: 472
+    fsGroupChangePolicy: "OnRootMismatch"  # Only change ownership when needed
+  
+  # Disable the problematic init container that's failing
+  initChownData:
+    enabled: false  # This disables the failing init-chown-data container
+
+# Enable Prometheus to use persistent storage.
+# ✅ Solves error: Prometheus data loss during pod restarts.
+prometheus:
+  serviceMonitor:
+    ## Scrape interval. If not set, the Prometheus default scrape interval is used.
+    ##
+    interval: ""
+  prometheusSpec:
+    ## How long to retain metrics
+    retention: 10d
+    ## Number of Prometheus replicas  
+    replicas: 1
+    ## Prometheus StorageSpec for persistent data
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard # Use your desired StorageClass
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi  # Prometheus needs more space for metrics
