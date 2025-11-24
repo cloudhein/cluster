@@ -4,4 +4,4 @@ This repository provides a Terraform-based infrastructure setup to deploy the `f
 
 # Flextrack Microservices Deployment Architecture Workflow
 
-![alt text](./images/flextrack-microservices.png)
+![alt text](./images/flextrack-microservices-v2.0.png)
