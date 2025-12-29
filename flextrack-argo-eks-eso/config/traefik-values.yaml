@@ -1,0 +1,36 @@
+service:
+  enabled: true
+  type: ClusterIP  # We use ClusterIP because ALB will route directly to Pod IPs
+  annotations: {}
+
+ports:
+  web:
+    port: 8000
+    # ✅ FIX: 'expose' must be an object { default: true }, not a boolean
+    expose:
+      default: true
+    exposedPort: 80
+    protocol: TCP
+  websecure:
+    port: 8443
+    # ✅ FIX: 'expose' must be an object { default: true }, not a boolean
+    expose:
+      default: true
+    exposedPort: 443
+    protocol: TCP
+
+ingressClass:
+  enabled: true
+  isDefaultClass: false # ALB is your external default; Traefik is internal
+
+# Disable the dashboard ingress, we will port-forward if needed for security
+ingressRoute:
+  dashboard:
+    enabled: false
+
+# Ensure logs are visible for debugging
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: true

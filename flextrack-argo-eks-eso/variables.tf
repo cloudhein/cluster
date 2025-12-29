@@ -40,3 +40,9 @@ variable "helm_timeout" {
   description = "Timeout for Helm releases in seconds"
   default     = 900
 }
+
+variable "traefik_namespace" {
+  type        = string
+  description = "Namespace for Traefik Ingress Controller"
+  default     = "traefik"
+}
