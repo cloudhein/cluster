@@ -1,5 +1,9 @@
 terraform {
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "6.6.0"
+    }
     helm = {
       source  = "hashicorp/helm"
       version = "3.0.2"
@@ -11,12 +15,23 @@ terraform {
   }
 }
 
+# Configure the aws provider to authentication
+provider "aws" {
+  profile = var.aws_auth_profile
+  region  = var.aws_auth_region
+}
+
 provider "helm" {
   kubernetes = {
-    config_path = "~/.kube/config"
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
   }
 }
 
 provider "kubectl" {
-  config_path = "~/.kube/config"
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+  load_config_file       = false
 }

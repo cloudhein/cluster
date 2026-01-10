@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: throttler-servicemonitor
+  namespace: monitoring # match with the namespace in main.tf
+  labels:
+    release: monitoring # match with the release name in main.tf
+spec:
+  # This section tells the ServiceMonitor which Service(s) to find.
+  selector:
+    matchLabels:
+      # This perfectly matches the Service in your throttler.yaml.
+      app: throttler
+  # This limits the search to the namespace where your application is running.
+  namespaceSelector:
+    matchNames:
+    - default # Change this if your throttler service is in a different namespace
+  # This section defines how to scrape the metrics from the found Service.
+  endpoints:
+  - port: http
+    # This targets the port named "http" in your Service manifest.
+
+    # Standard path for Prometheus metrics. Change if your app uses a different one.
+    path: /metrics
+    
+    # How frequently to scrape the metrics.
+    interval: 15s

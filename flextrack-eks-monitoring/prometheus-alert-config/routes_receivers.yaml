@@ -1,0 +1,99 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: flextrack-app-alertmanagerconfig
+  namespace: monitoring # match with the namespace in main.tf
+  labels:
+    release: monitoring # match with the release name in main.tf  
+spec:
+  route:
+    receiver: flextrack-platform-receiver # default receiver
+    groupBy: ['service'] # define the list of lables to group by for alert notifications
+    groupWait: 5s
+    groupInterval: 10s
+    repeatInterval: 30s
+    routes:
+    ###### Critical alerts - Notifier App only ######
+    - matchers: 
+      - name: severity # match the label key in alerts.yaml
+        matchType: "="
+        value: critical # match the label value in alerts.yaml
+      - name: service
+        matchType: "="
+        value: notifier-app
+      receiver: notifier-critical-slack
+      repeatInterval: 10m
+
+    # Warning alerts - Notifier App only (optional)
+    - matchers:
+      - name: severity
+        matchType: "="
+        value: warning
+      - name: service
+        matchType: "="
+        value: notifier-app
+      receiver: notifier-warning-slack
+      repeatInterval: 10m
+
+    ###### Critical alerts - Throttler App only ######
+    - matchers: 
+      - name: severity
+        matchType: "="
+        value: critical
+      - name: service
+        matchType: "="
+        value: throttler-app
+      receiver: throttler-critical-slack
+      repeatInterval: 10m
+
+    # Warning alerts - Throttler App only (optional)
+    - matchers:
+      - name: severity
+        matchType: "="
+        value: warning
+      - name: service
+        matchType: "="
+        value: throttler-app
+      receiver: throttler-warning-slack
+      repeatInterval: 10m
+    
+  receivers:
+  ##### Notifier App Receivers #####
+  - name: notifier-critical-slack
+    slackConfigs:
+    - apiURL: 
+        key: url
+        name: slack-webhook-secret
+      channel: '#critical-alerts'   # your specific channel
+      username: 'Prometheus'
+      sendResolved: true
+
+  - name: notifier-warning-slack
+    slackConfigs:
+    - apiURL: 
+        key: url
+        name: slack-webhook-secret
+      channel: '#warning-alerts'   # your specific channel
+      username: 'Prometheus'
+      sendResolved: true
+
+  ##### Throttler App Receivers #####
+  - name: throttler-critical-slack
+    slackConfigs:
+    - apiURL: 
+        key: url
+        name: slack-webhook-secret
+      channel: '#critical-alerts'   # your specific channel
+      username: 'Prometheus'
+      sendResolved: true   
+
+  - name: throttler-warning-slack
+    slackConfigs:
+    - apiURL: 
+        key: url
+        name: slack-webhook-secret
+      channel: '#warning-alerts'   # your specific channel
+      sendResolved: true
+
+  - name: flextrack-platform-receiver
+    # Empty receiver - discards unrelated alerts

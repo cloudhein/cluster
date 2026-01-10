@@ -1,0 +1,77 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flextrack-platform-rules
+  namespace: monitoring # match with the namespace in main.tf
+  labels:
+    release: monitoring # match with the release name in main.tf
+spec:
+  groups:
+  - name: flextrack.rules
+    rules:
+  # Throttler App Alerts
+    - alert: throttlerappdown
+      expr: up{job="throttler-app"} == 0 or absent(up{job="throttler-app"})
+      for: 1m  # Optional - how long to wait before
+      labels:
+        severity: critical
+        service: throttler-app
+        namespace: default
+      annotations:
+        summary: "Throttler App is down"
+        description: "Throttler App has been down for more than 1 minute. Instance: {{ $labels.instance }}"
+        
+    - alert: ThrottlerHighErrorRate
+      expr: |
+        (
+          sum(rate(total_http_requests{code!~"2.."}[5m]))
+          /
+          sum(rate(total_http_requests[5m]))
+        ) > 0.5
+      for: 1m
+      labels:
+        severity: warning
+        service: throttler-app
+        namespace: default
+      annotations:
+        summary: "High HTTP error rate for throttler"
+        description: "More than 50% of requests have failed in the last 5 minutes."
+
+    - alert: ThrottlerHighCPUUsage
+      expr: rate(process_cpu_seconds_total{job="throttler-app"}[2m]) > 0.8
+      for: 1m
+      labels:
+        severity: warning
+        service: throttler-app
+        namespace: default
+      annotations:
+        summary: "High CPU usage detected in throttler-app"
+        description: "CPU usage exceeds 80% for the throttler app."
+    
+  # Notifier App Alerts
+    - alert: notifierappdown
+      expr: up{job="notifier-app"} == 0 or absent(up{job="notifier-app"})
+      for: 1m  # Optional - how long to wait before alerting
+      labels:
+        severity: critical
+        service: notifier-app
+        namespace: default
+      annotations:
+        summary: "Notifier App is down"
+        description: "Notifier App has been down for more than 1 minute. Instance: {{ $labels.instance }}"
+
+    - alert: NotifierHighCPUUsage
+      expr: rate(process_cpu_seconds_total{job="notifier-app"}[2m]) > 0.8
+      for: 1m
+      labels:
+        severity: warning
+        service: notifier-app
+        namespace: default
+      annotations:
+        summary: "High CPU usage detected in notifier-app"
+        description: "CPU usage exceeds 80% for the notifier app."
+
+
+    
+
+
