@@ -1,5 +1,5 @@
 # ---------------------------------------------------------
-# 1. Install Loki (Single Binary using S3)
+# 1. Install Loki (Single Binary using S3) - FIXED RESOURCES
 # ---------------------------------------------------------
 resource "helm_release" "loki" {
   name             = "loki"
@@ -12,18 +12,15 @@ resource "helm_release" "loki" {
   timeout = var.helm_timeout
   wait    = true
 
-  # We use yamlencode to inject Terraform variables into the Helm values
   values = [
     yamlencode({
       deploymentMode = "SingleBinary"
 
       loki = {
         auth_enabled = false
-
         commonConfig = {
           replication_factor = 1
         }
-
         schemaConfig = {
           configs = [{
             from         = "2024-04-01"
@@ -36,63 +33,94 @@ resource "helm_release" "loki" {
             }
           }]
         }
-
-        # ✅ DYNAMIC S3 CONFIGURATION
         storage = {
           type = "s3"
           bucketNames = {
-            # Terraform injects the generated bucket ID here automatically
             chunks = aws_s3_bucket.loki_storage.id
             ruler  = aws_s3_bucket.loki_storage.id
             admin  = aws_s3_bucket.loki_storage.id
           }
           s3 = {
-            region = var.region
-            # We explicitly allow IRSA (no static keys needed)
+            region   = var.region
             insecure = false
           }
         }
       }
 
-      # ✅ SERVICE ACCOUNT CONFIGURATION
       serviceAccount = {
         create = true
-        name   = "loki" # Must match the IAM Trust Policy
+        name   = "loki"
         annotations = {
-          # Terraform injects the created IAM Role ARN here
           "eks.amazonaws.com/role-arn" = aws_iam_role.loki_irsa.arn
         }
       }
 
-      # Optimizations for Single Binary
+      # ✅ FIXED: Added Resources for the Main Loki Pod
+      # Usage was ~114Mi. Setting Request to 256Mi.
       singleBinary = {
         replicas = 1
         persistence = {
           enabled = true
           size    = "10Gi"
         }
+        resources = {
+          requests = {
+            memory = "256Mi"
+            cpu    = "100m"
+          }
+          limits = {
+            memory = "512Mi"
+            cpu    = "500m"
+          }
+        }
       }
 
-      # Disable components not needed for SingleBinary
+      # ✅ FIXED: Added Resources for the Gateway (Nginx)
+      # Usage was ~11Mi. Setting Request to 32Mi.
+      gateway = {
+        resources = {
+          requests = {
+            memory = "32Mi"
+            cpu    = "50m"
+          }
+          limits = {
+            memory = "64Mi"
+            cpu    = "100m"
+          }
+        }
+      }
+
+      # Disable unneeded components
       write   = { replicas = 0 }
       read    = { replicas = 0 }
       backend = { replicas = 0 }
-      minio   = { enabled = false } # We use AWS S3, not Minio
+      minio   = { enabled = false }
 
-      # ✅ CRITICAL FIX: Disable heavy caches that request 10GB RAM
       chunksCache  = { enabled = false }
       resultsCache = { enabled = false }
 
-      # Disable self-monitoring to save resources
       test = { enabled = false }
       monitoring = {
         selfMonitoring = { enabled = false }
       }
 
-      # Add this tolerations config to run this daemonset on karpenter system node group 
-      # ✅ CORRECT LOCATION: Root level (not inside 'monitoring') 
+      # ✅ FIXED: Added Resources for Canary
+      # Usage was ~13Mi. Setting Request to 32Mi.
       lokiCanary = {
         enabled = true
+        resources = {
+          requests = {
+            memory = "32Mi"
+            cpu    = "20m"
+          }
+          limits = {
+            memory = "64Mi"
+            cpu    = "50m"
+          }
+        }
+        # ✅ FIX: Clear Affinity/NodeSelector to allow scheduling on any node (System or Old App)
+        nodeSelector = {}
+        affinity     = {}
         tolerations = [
           {
             key      = "CriticalAddonsOnly"

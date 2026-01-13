@@ -9,4 +9,9 @@ resource "helm_release" "argocd" {
 
   timeout = var.helm_timeout # Increased timeout
   wait    = false            # Don't wait for all pods to be ready
+
+  # ✅ ADDED: Load the fixed values file to set Resource Requests
+  values = [
+    file("${path.module}/config/argocd-values-fixed.yaml")
+  ]
 }

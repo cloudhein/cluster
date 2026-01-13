@@ -108,6 +108,15 @@ grafana:
   initChownData:
     enabled: false  # This disables the failing init-chown-data container
 
+   # ✅ FIX: Added Request for Grafana (Was 0, Usage ~283Mi)
+  resources:
+    requests:
+      memory: "350Mi" 
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
 # Enable Prometheus to use persistent storage.
 # ✅ Solves error: Prometheus data loss during pod restarts.
 prometheus:
@@ -130,3 +139,12 @@ prometheus:
           resources:
             requests:
               storage: 10Gi  # Prometheus needs more space for metrics
+
+    # ✅ FIX: Added Request for Prometheus (Was 0, Usage ~478Mi)
+    resources:
+      requests:
+        memory: "600Mi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
