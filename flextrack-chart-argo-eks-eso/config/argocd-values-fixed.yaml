@@ -1,0 +1,61 @@
+# ArgoCD Resource "Right-Sizing" Configuration
+# Based on actual cluster usage: Controller (~254Mi), Server (~26Mi), Repo (~31Mi)
+
+# 1. Application Controller (The heaviest component)
+# Usage was ~254Mi with 0 Request. We fix this to reserve space.
+controller:
+  resources:
+    requests:
+      memory: "350Mi" # Set above observed 254Mi usage
+      cpu: "100m"
+    limits:
+      memory: "1Gi"   # Allow bursts during heavy syncs
+      cpu: "1000m"
+
+# 2. ArgoCD Server (API/UI)
+server:
+  replicas: 1
+  resources:
+    requests:
+      memory: "128Mi" # Safe buffer over ~30Mi usage
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+# 3. Repo Server (Handles Git operations)
+repoServer:
+  resources:
+    requests:
+      memory: "128Mi" # Safe buffer over ~30Mi usage
+      cpu: "50m"
+    limits:
+      memory: "512Mi" # Git clones can spike memory usage
+      cpu: "500m"
+
+# 4. Redis (Cache)
+redis:
+  resources:
+    requests:
+      memory: "64Mi"  # Safe buffer over ~4Mi usage
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+
+# 5. Dex (SSO Authentication)
+dex:
+  resources:
+    requests:
+      memory: "64Mi"  # Safe buffer over ~20Mi usage
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+
+# 6. Global configuration
+global:
+  # Ensure we use standard logging to avoid filling disks
+  logging:
+    format: text
+    level: info
